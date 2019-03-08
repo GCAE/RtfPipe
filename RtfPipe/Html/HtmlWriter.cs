@@ -44,17 +44,18 @@ namespace RtfPipe
       EnsureSpans(format);
 
       _tags.Peek().ChildCount++;
-      _writer.WriteValue(AddNonBreaking(text));
+      _writer.WriteValue(AddNonBreaking(text
+        , format.OfType<Font>().Any(f => TextEncoding.IsEastAsian(f.Encoding))));
       _lastTokenType = typeof(TextToken);
     }
 
-    private string AddNonBreaking(string text)
+    private string AddNonBreaking(string text, bool eastAsian = false)
     {
       var output = text.ToCharArray();
       for (var i = 1; i < text.Length; i++)
       {
         if (text[i] == text[i - 1] && text[i] == ' ')
-          output[i] = '\u00a0';
+          output[i] = eastAsian ? '\u2007' : '\u00a0';
       }
       return new string(output);
     }
@@ -108,6 +109,7 @@ namespace RtfPipe
           EndTag();
         }
         _startOfLine = true;
+        format.RemoveFirstOfType<SingleLineIndent>();
       }
       else if (token is SectionBreak || token is PageBreak)
       {
@@ -122,6 +124,7 @@ namespace RtfPipe
           EnsureSection(format);
         }
         _state = WriteState.Other;
+        format.RemoveFirstOfType<SingleLineIndent>();
       }
       else if (token is FootnoteBreak)
       {
@@ -152,6 +155,7 @@ namespace RtfPipe
         EndTag();
         _startOfLine = true;
         _state = WriteState.Other;
+        format.RemoveFirstOfType<SingleLineIndent>();
       }
       else if (token is RowBreak || token is NestRow)
       {
@@ -160,13 +164,16 @@ namespace RtfPipe
         EndTag();
         _startOfLine = true;
         _state = WriteState.Other;
+        format.RemoveFirstOfType<SingleLineIndent>();
       }
       else if (token is LineBreak)
       {
+        EnsureSection(format);
         _writer.WriteStartElement("br");
         _writer.WriteEndElement();
         _tags.Peek().ChildCount++;
         _startOfLine = true;
+        format.RemoveFirstOfType<SingleLineIndent>();
       }
       else if (token is Tab)
       {
@@ -178,7 +185,7 @@ namespace RtfPipe
             if (format.TryGetValue<FirstLineIndent>(out var firstIndent))
               start = firstIndent.Value;
             var tab = format.GetTab(count, DefaultTabWidth, start);
-            format.Add(new FirstLineIndent(tab.Position));
+            format.Add(new SingleLineIndent(tab.Position));
           }
           else
           {

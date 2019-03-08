@@ -22,6 +22,16 @@ namespace RtfPipe
 
     private int Depth { get { return _context.Count; } }
 
+    public Parser(string rtf)
+    {
+      _reader = new StringReader(rtf);
+    }
+
+    public Parser(Stream stream)
+    {
+      _reader = new RtfStreamReader(stream);
+    }
+
     public Parser(TextReader reader)
     {
       _reader = reader;
@@ -49,8 +59,8 @@ namespace RtfPipe
         }
         else if (token is GroupEnd)
         {
-          var lastGroup = groups.Pop();
-          var dest = lastGroup.Destination;
+          var lastGroup = groups.Count > 0 ? groups.Pop() : default(Group);
+          var dest = lastGroup?.Destination;
           if (dest is ListDefinition)
           {
             var style = new ListStyle(lastGroup);
@@ -201,7 +211,7 @@ namespace RtfPipe
               }
               break;
             case '}':
-              if (_context.Peek().ValueBuffer.Length > 0)
+              if (_context.Count > 0 && _context.Peek().ValueBuffer.Length > 0)
                 yield return ConsumeTextBuffer();
               yield return new GroupEnd();
 
@@ -283,6 +293,9 @@ namespace RtfPipe
         for (var i = 0; i < skip; i++)
         {
           var read = _reader.Read();
+          if (read == ' ' && i == 0)
+            read = _reader.Read();
+
           if (read == '\\' && _reader.Peek() == '\'')
           {
             _reader.Read(); // read single quote
@@ -301,7 +314,7 @@ namespace RtfPipe
 
     private IToken ConsumeToken(IToken token)
     {
-      if (token is ControlWord<Encoding> ctrlEncode && !(ctrlEncode is FontCharSet))
+      if (token is ControlWord<Encoding> ctrlEncode)
         UpdateEncoding(ctrlEncode.Value);
       else if (token is Font font && font.Encoding != null)
         UpdateEncoding(font.Encoding);

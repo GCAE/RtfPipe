@@ -1,11 +1,20 @@
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using System.Reflection;
 
 namespace RtfPipe.Tests
 {
   [TestClass]
   public class GitHubIssues
   {
+    [TestMethod]
+    public void Issue10()
+    {
+      TestConvert(@"{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fnil\fcharset0 MS Sans Serif;}}
+\viewkind4\uc1\pard\lang2057\f0\fs16\line Error can be found using this\par
+}", @"<div style=""font-size:12pt;font-family:&quot;MS Sans Serif&quot;;""><br><p style=""font-size:8pt;margin:0;"">Error can be found using this</p></div>");
+    }
+
     [TestMethod]
     public void Issue14()
     {
@@ -34,7 +43,7 @@ Finally, back to the default color.\line
     [TestMethod]
     public void Issue17()
     {
-      TestConvert(@"{\rtf1\ansi\ansicpg1252\uc1\deff1{
+      const string rtf = @"{\rtf1\ansi\ansicpg1252\uc1\deff1{
 \pict{\*\picprop\shplid1025{\sp{\sn shapeType}{\sv 75}}{\sp{\sn fFlipH}{\sv 0}}
 {\sp{\sn fFlipV}{\sv 0}}{\sp{\sn fRotateText}{\sv 1}}{\sp{\sn pictureGray}{\sv 0}}{\sp{\sn pictureBiLevel}{\sv 0}}{\sp{\sn fFilled}{\sv 0}}{\sp{\sn fLine}{\sv 0}}{\sp{\sn wzName}{\sv Picture 0}}{\sp{\sn wzDescription}{\sv Linke
 dIn.gif}}{\sp{\sn fHidden}{\sv 0}}{\sp{\sn fLayoutInCell}{\sv 1}}}\picscalex100\picscaley100\piccropl0\piccropr0\piccropt0\piccropb0\picw423\pich423\picwgoal240\pichgoal240\pngblip\bliptag-2141941385{\*\blipuid 805491778dc9ac8b2c298bd64da9d8ee}
@@ -57,13 +66,101 @@ c5b323bd7d80c0d7c7c7cf9fc1c8386b4eb389a9a999b985a595b58d2d83be9dbd83a393b38bab5b
 d061aa5e3c91b977f1e2050b172f8e62d1656065ab593c89bd63f1643dcf458b8b393819b8b84b164fe1e95cdcc0cb37757129373f83006fd9e269825d8b1b79
 f9a62f2ee765661012ae583c4da47b7193b0e8f4c595c2620ce212b58b67f0ce5cdc2321396b719d940083b448505536777455b08864765588880c83ac9cbc82
 84a4a282b0248f8482bc9c120383b20a12508d050054e2529f941a8ee10000000049454e44ae426082}
-}", "<div style=\"font-size:12pt;\"><p style=\"margin:0;\"><img width=\"16\" height=\"16\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGXRFWHRTb2Z0d2FyZQBNaWNyb3NvZnQgT2ZmaWNlf+01cQAAAwBQTFRFAAAAD3+6Bni2C3q3Cnq3E324A3SzBna0AnOzFX65DXu3AHCyAHKzAG6wAXW0D3y4CXm2AHCxB3i2AG2wAG+xAHS0CXm3B3e1AGyvAHOzAGuvBna1CHi2AnSzAHOyAG6xAGquAGywBHa0DXi0C3m3DXe0Hoq+G4W9EoG7GoW9GoS8HYa9FoC6GIG7H4S8Ioq/JYu/PZfHLpDCLZDCM5PEMZLEM5PFMpPFLZDDL5HDNJTFNJXFNZXFMJHDJI3AJo7BP5vILpHDIovALZHDMZPEJIzAJo3BIozAJY3AMo/CQJnJRpzKSJ7LSJ3LSp7LQJjISJ/LQJvIQ5nIT5/LRJnIUKDNXqnSXKjRUqLNUqPOWaXPX6jQWabOWqXOeLTXerXYebXYeLPXZKrSfrjaebXZe7baZ6vSfbnbYKrTYqvTf7zbaa3Tir/djL/dhbvcgrrcgbrchLvchL7chb3ch77cib/dhL3bhr7cgrzbhr3chbzbj8Pfi8DdisDdjcHemsnjnsrjmsjhmsnisdfpvt3tsNXppM/lptDmvdvsvNvsutrsudrro87lwt/ux+Hwx+LwzeXx1Ojzz+Xy2Or0zuXxzeTxzOTxy+Px2Ov1xODu1+r0+f3/6vT55vL46fT59vv99fr98vj87vb7////AQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDdWbl1wAAAAF0Uk5TAEDm2GYAAAAJcEhZcwAAAEAAAABAAGJDY1sAAAAMY21QUEpDbXAwNzEyAAAAA0gAc7wAAAEFSURBVChTY8iJi49PSICi+MRchqS85JTU/PwCEMjPL0xjCA1L76sPz4CCzAgGQ6/+xbMjvX2AwNfHx8+fwcg4a06ziampmbmFpZW1jS2Dvp29g6OTs4urW0CgmruHAYM6Y9HcFo3WeW0TFs9v19TSZtBhql48kbl38eIFCxcvjmLRZWBlq1k8ib1j8WQ9z0WLizk4Gbi4SxZP4elc3MDLN3VxKTc/gwBv2eJpgl2LG3n5pi8u52VmEBKuWDxNpHtxk7Do9MWVwmIM4hK1i2fwzlzcIyE5a3GdlACDtEhQVTZ3dFWwiGR2VYiIDIOsnLyChKSigrAkj4SCvJwSA4OyChJQjQUAVOJSn5QajuEAAAAASUVORK5CYII=\"></p></div>");
+}";
+      TestConvert(rtf, "<div style=\"font-size:12pt;\"><p style=\"margin:0;\"><img width=\"16\" height=\"16\" src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAGXRFWHRTb2Z0d2FyZQBNaWNyb3NvZnQgT2ZmaWNlf+01cQAAAwBQTFRFAAAAD3+6Bni2C3q3Cnq3E324A3SzBna0AnOzFX65DXu3AHCyAHKzAG6wAXW0D3y4CXm2AHCxB3i2AG2wAG+xAHS0CXm3B3e1AGyvAHOzAGuvBna1CHi2AnSzAHOyAG6xAGquAGywBHa0DXi0C3m3DXe0Hoq+G4W9EoG7GoW9GoS8HYa9FoC6GIG7H4S8Ioq/JYu/PZfHLpDCLZDCM5PEMZLEM5PFMpPFLZDDL5HDNJTFNJXFNZXFMJHDJI3AJo7BP5vILpHDIovALZHDMZPEJIzAJo3BIozAJY3AMo/CQJnJRpzKSJ7LSJ3LSp7LQJjISJ/LQJvIQ5nIT5/LRJnIUKDNXqnSXKjRUqLNUqPOWaXPX6jQWabOWqXOeLTXerXYebXYeLPXZKrSfrjaebXZe7baZ6vSfbnbYKrTYqvTf7zbaa3Tir/djL/dhbvcgrrcgbrchLvchL7chb3ch77cib/dhL3bhr7cgrzbhr3chbzbj8Pfi8DdisDdjcHemsnjnsrjmsjhmsnisdfpvt3tsNXppM/lptDmvdvsvNvsutrsudrro87lwt/ux+Hwx+LwzeXx1Ojzz+Xy2Or0zuXxzeTxzOTxy+Px2Ov1xODu1+r0+f3/6vT55vL46fT59vv99fr98vj87vb7////AQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDAQIDdWbl1wAAAAF0Uk5TAEDm2GYAAAAJcEhZcwAAAEAAAABAAGJDY1sAAAAMY21QUEpDbXAwNzEyAAAAA0gAc7wAAAEFSURBVChTY8iJi49PSICi+MRchqS85JTU/PwCEMjPL0xjCA1L76sPz4CCzAgGQ6/+xbMjvX2AwNfHx8+fwcg4a06ziampmbmFpZW1jS2Dvp29g6OTs4urW0CgmruHAYM6Y9HcFo3WeW0TFs9v19TSZtBhql48kbl38eIFCxcvjmLRZWBlq1k8ib1j8WQ9z0WLizk4Gbi4SxZP4elc3MDLN3VxKTc/gwBv2eJpgl2LG3n5pi8u52VmEBKuWDxNpHtxk7Do9MWVwmIM4hK1i2fwzlzcIyE5a3GdlACDtEhQVTZ3dFWwiGR2VYiIDIOsnLyChKSigrAkj4SCvJwSA4OyChJQjQUAVOJSn5QajuEAAAAASUVORK5CYII=\"></p></div>");
+      var parser = new Parser(rtf);
+      var doc = parser.Parse();
     }
 
-    private void TestConvert(string rtf, string html)
+    [TestMethod]
+    public void Issue18()
+    {
+      TestConvert(@"{\rtf1\ansi\ansicpg1252\fromhtml1 \fbidis \deff0{\fonttbl
+{\f0\fswiss\fcharset0 Arial;}
+{\f1\fmodern Courier New;}
+{\f2\fnil\fcharset2 Symbol;}
+{\f3\fmodern\fcharset0 Courier New;}
+{\f4\fswiss\fcharset0 ""Segoe UI Emoji"";}}
+{\colortbl\red0\green0\blue0;\red5\green99\blue193;}
+\uc1\pard\plain\deftab360 \f0\fs24 
+{\*\htmltag18 <html>}
+{\*\htmltag50 <body lang=EN-US link=""#0563C1"" vlink=""#954F72"">}\htmlrtf \lang1033 \htmlrtf0 
+{\*\htmltag96 <div class=WordSection1>}\htmlrtf {\htmlrtf0 
+{\*\htmltag148 <span style='color:#7030A0'>}\htmlrtf {\htmlrtf0 Testing the smiley unicode 
+{\*\htmltag156 </span>}\htmlrtf }\htmlrtf0 
+{\*\htmltag148 <span style='font-family:""Segoe UI Emoji"",sans-serif;color:#7030A0'>}\htmlrtf {\f4 \htmlrtf0 \u-10179 ?\u-8694 ?
+{\*\htmltag156 </span>}\htmlrtf }\htmlrtf0 
+{\*\htmltag104 </div>}\htmlrtf }\htmlrtf0 
+{\*\htmltag58 </body>}
+{\*\htmltag27 </html>}}", @"<html><body lang=EN-US link=""#0563C1"" vlink=""#954F72""><div class=WordSection1><span style='color:#7030A0'>Testing the smiley unicode </span><span style='font-family:""Segoe UI Emoji"",sans-serif;color:#7030A0'>😊</span></div></body></html>");
+    }
+
+    [TestMethod]
+    public void Issue20()
+    {
+      TestConvert(@"{\rtf1\ansi\ansicpg1252\lnbrkrule
+{\fonttbl
+{\f1\fswiss\fcharset0\fprq0 Arial;}
+{\f2\fnil\fcharset134\fprq0 \'cb\'ce\'cc\'e5;}
+{\f3\fnil\fcharset134\fprq0 \'ba\'da\'cc\'e5;}
+{\f4\fswiss\fcharset161\fprq0 Arial;}
+}
+{\colortbl;
+\red0\green0\blue0;
+\red0\green0\blue255;
+}
+{\stylesheet
+{\s1\qc\loch\af1\hich\af1\dbch\f2\fs44\ppscheme-3\lang1033\level1 heading 1;}
+{\s2\li270\fi-270\loch\af1\hich\af1\dbch\f2\fs32\ppscheme-1\lang1033\level2 heading 2;}
+{\s3\li585\fi-225\loch\af1\hich\af1\dbch\f2\fs28\ppscheme-1\lang1033\level3 heading 3;}
+{\s4\li900\fi-180\loch\af1\hich\af1\dbch\f2\fs24\ppscheme-1\lang1033\level4 heading 4;}
+{\s5\li1260\fi-180\loch\af1\hich\af1\dbch\f2\fs20\ppscheme-1\lang1033\level5 heading 5;}
+{\s6\li1620\fi-180\loch\af1\hich\af1\dbch\f2\fs20\ppscheme-1\lang1033\level6 heading 6;}
+}
+\pard\plain\ltrpar\s1\qc\loch\af1\hich\af1\dbch\f2\fs44\ppscheme-3\lang1033 {\b\loch\af1\hich\af1\dbch\f2 \'a1\'b6}{\b\loch\af1\hich\af1\dbch\f2\lang2052\langfe2052 \'b6\'d4\'cd\'e2\'ba\'ba\'d3\'ef\'bd\'cc\'d1\'a7\'b8\'c5\'c2\'db}{\b\loch\af1\hich\af1\dbch\f2 \'a1\'b7}{\b\loch\af1\hich\af1\dbch\f2 \par 
+}
+}", @"<div style=""font-size:12pt;""><p style=""text-align:center;font-size:22pt;font-family:宋体;margin:0;""><strong>《对外汉语教学概论》</strong></p></div>");
+    }
+
+    [TestMethod]
+    public void Issue23()
+    {
+      TestConvert("RtfPipe.Tests.Files.Issue23");
+    }
+
+    [TestMethod]
+    public void Issue25()
+    {
+      TestConvert(@"{\rtf1\ansi\ansicpg1252\deff0\deflang3081\deflangfe3081\paperw11906\paperh16838\margl851\margr851\margt851\margb851{\fonttbl{\f0\fnil\fcharset0 Courier New;}}{\colortbl ;\red0\green0\blue0;\red0\green0\blue255;\red0\green153\blue0;\red0\green255\blue255;\red255\green0\blue0;\red255\green0\blue255;\red102\green51\blue0;\red192\green192\blue192;\red96\green96\blue96;\red51\green153\blue255;\red51\green255\blue51;\red153\green255\blue255;\red255\green255\blue0;\red255\green255\blue255;}\pard\plain \ql\li0\ri0\nowidctlpar\sl276\slmult1\f0\fs20\lang3081\par \par \par \par 28th February, 2007.\par \par Dr Donald Duck\par Disney General Practice\par 1011 Bourbon Street\par Random Town VIC 3377\par \par Dear Pete\par \par 	RE: Mr John Smith (DOB: 25/02/39)\par 	Unit 15/246 Spencer Street Random Town VIC 3377\par \par John is at sixes and sevens.   He is very anxious and has a whole load of psychosomatic complaints.   None of these are related to his actual prostate cancer.\par \par His bone scan reveals some arthritis in his shoulders and an old rib fracture on the right.   There is no evidence of metastatic disease.   This is consistent with expectation from his pathology.\par \par His options are watchful waiting or external beam radiotherapy.   He is excluded from Brachy therapy because he has elements of Gleason 4 carcinoma.   Surgery would not be a good option in him due to a significant CVA seven to eight years ago and this would put his risks of repeat up considerably.\par \par He is due for review by you shortly and I would appreciate it if you could treat him in a general sense.   I will catch-up with him for further discussion in two to three weeks time.\par \par Kind regards\par \par David Dodge\par }"
+, @"<div style=""font-size:12pt;font-family:&quot;Courier New&quot;;""><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">28th February, 2007.</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">Dr Donald Duck</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">Disney General Practice</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">1011 Bourbon Street</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">Random Town VIC 3377</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">Dear Pete</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;text-indent:48px;margin:0;"">RE: Mr John Smith (DOB: 25/02/39)</p><p style=""text-align:left;line-height:1.4;font-size:10pt;text-indent:48px;margin:0;"">Unit 15/246 Spencer Street Random Town VIC 3377</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">John is at sixes and sevens. &nbsp;&nbsp;He is very anxious and has a whole load of psychosomatic complaints. &nbsp;&nbsp;None of these are related to his actual prostate cancer.</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">His bone scan reveals some arthritis in his shoulders and an old rib fracture on the right. &nbsp;&nbsp;There is no evidence of metastatic disease. &nbsp;&nbsp;This is consistent with expectation from his pathology.</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">His options are watchful waiting or external beam radiotherapy. &nbsp;&nbsp;He is excluded from Brachy therapy because he has elements of Gleason 4 carcinoma. &nbsp;&nbsp;Surgery would not be a good option in him due to a significant CVA seven to eight years ago and this would put his risks of repeat up considerably.</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">He is due for review by you shortly and I would appreciate it if you could treat him in a general sense. &nbsp;&nbsp;I will catch-up with him for further discussion in two to three weeks time.</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">Kind regards</p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;""><br></p><p style=""text-align:left;line-height:1.4;font-size:10pt;margin:0;"">David Dodge</p></div>");
+    }
+
+    [TestMethod]
+    public void Issue26()
+    {
+      TestConvert(@"{\rtf1\ansi\ansicpg1252\deff0\deflang1033\fs20{\fonttbl{\f0\fswiss\fprq2\fcharset0 Arial;}
+{\f99\froman\fcharset0\fprq2{\*\panose 02020603050405020304}Arial;}{\f100\fnil\fcharset2 Symbol;}{\f101\fnil\fcharset2 Wingdings;}{\f102\fcharset204{\*\fname Courier New;}Courier New CYR;}{\f103\fcharset0 Arial;}}
+{\colortbl ;\red0\green0\blue0;\red51\green102\blue255;}
+\paperw12240\paperh15840\margl1417\margr1134\margt1134\margb1134
+\pard\sb100\sa100\sbauto1\saauto1\fs20\lang1033
+ist Ersatzabruf für 4200028332 warAN 68595 bez 12.261,20- Re 111607-7105658060-ok !!\pard}}", @"<div style=""font-size:12pt;font-family:Arial, sans-serif;""><p style=""font-size:10pt;margin:6.7px 0 6.7px 0;"">ist Ersatzabruf für 4200028332 warAN 68595 bez 12.261,20- Re 111607-7105658060-ok !!</p></div>");
+    }
+
+    private void TestConvert(RtfSource rtf, string html)
     {
       var actual = Rtf.ToHtml(rtf);
       Assert.AreEqual(html, actual);
+    }
+
+    private void TestConvert(string path)
+    {
+      using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path + ".rtf"))
+      using (var expectedReader = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(path + ".html")))
+      {
+        var actual = Rtf.ToHtml(stream);
+        var expected = expectedReader.ReadToEnd();
+        Assert.AreEqual(expected, actual);
+      }
     }
   }
 }
